@@ -1,0 +1,622 @@
+<!DOCTYPE html>
+<html lang="en" class="scroll-smooth">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Priority Scheduling Algorithm Learner</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f8fafc;
+            color: #0f172a;
+        }
+        
+        .gantt-block {
+            transition: all 0.3s ease;
+        }
+        .gantt-block:hover {
+            transform: scaleY(1.1);
+            z-index: 10;
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+        }
+
+        /* Custom scrollbar */
+        ::-webkit-scrollbar { width: 8px; height: 8px; }
+        ::-webkit-scrollbar-track { background: #f1f1f1; }
+        ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 4px; }
+        ::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
+        
+        .fade-in { animation: fadeIn 0.5s ease-in; }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+    </style>
+</head>
+<body class="antialiased min-h-screen flex flex-col">
+
+    <nav class="bg-indigo-600 text-white shadow-lg sticky top-0 z-50">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between h-16">
+                <div class="flex items-center space-x-3">
+                    <svg class="w-8 h-8 text-indigo-200" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19.428 15.428a2 2 0 00-1.022-.547l-2.387-.477a6 6 0 00-3.86.517l-.318.158a6 6 0 01-3.86.517L6.05 15.21a2 2 0 00-1.806.547M8 4h8l-1 1v5.172a2 2 0 00.586 1.414l5 5c1.26 1.26.367 3.414-1.415 3.414H4.828c-1.782 0-2.674-2.154-1.414-3.414l5-5A2 2 0 009 10.172V5L8 4z"></path></svg>
+                    <span class="font-bold text-xl tracking-tight">OS Algo<span class="text-indigo-200">Learn</span></span>
+                </div>
+                <div class="flex items-center space-x-6">
+                    <a href="#theory" class="hover:text-indigo-200 transition-colors font-medium">Theory</a>
+                    <a href="#simulator" class="hover:text-indigo-200 transition-colors font-medium bg-indigo-500 px-4 py-2 rounded-md">Simulator</a>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <main class="flex-grow w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-12">
+        
+        <!-- Header Section -->
+        <div class="text-center space-y-4 pt-8">
+            <h1 class="text-4xl md:text-5xl font-extrabold text-slate-900 tracking-tight">Priority Process Scheduling</h1>
+            <p class="text-lg text-slate-600 max-w-3xl mx-auto">Master one of the core Operating System CPU scheduling algorithms. Learn the difference between pre-emptive and non pre-emptive modes and simulate them instantly.</p>
+        </div>
+
+        <!-- Theory Section -->
+        <section id="theory" class="scroll-mt-24">
+            <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+                
+                <div class="col-span-1 lg:col-span-3 bg-white rounded-2xl shadow-sm border border-slate-200 p-8">
+                    <h2 class="text-2xl font-bold text-indigo-700 mb-4">What is Priority Scheduling?</h2>
+                    <p class="text-slate-700 leading-relaxed mb-4">
+                        Priority scheduling is a non-proportional algorithm in which each process is assigned a priority. 
+                        The CPU is allocated to the process with the highest priority. Equal-priority processes are scheduled in First-Come, First-Served (FCFS) order. 
+                    </p>
+                    <div class="bg-amber-50 border-l-4 border-amber-400 p-4 mb-4">
+                        <div class="flex items-start">
+                            <div class="flex-shrink-0">
+                                <svg class="h-5 w-5 text-amber-400" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clip-rule="evenodd" /></svg>
+                            </div>
+                            <div class="ml-3">
+                                <p class="text-sm text-amber-700">
+                                    <strong>Convention used in this simulator:</strong> A <em>lower number</em> indicates a <em>higher priority</em>. For example, Priority 1 is higher than Priority 5.
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="bg-white rounded-2xl shadow-sm border border-slate-200 p-6 flex flex-col h-full">
+                    <h3 class="text-xl font-bold text-slate-800 mb-3 flex items-center">
+                        <span class="w-8 h-8 rounded bg-indigo-100 text-indigo-700 flex items-center justify-center mr-3 text-sm">1</span>
+                        Non Pre-emptive
+                    </h3>
+                    <p class="text-slate-600 flex-grow leading-relaxed">
+                        Once the CPU has been allocated to a process, the process keeps the CPU until it releases it, either by terminating or by switching to the waiting state. Even if a newly arrived process has a higher priority, it must wait for the current process to finish.
+                    </p>
+                </div>
+
+                <div class="bg-white rounded-2xl shadow-sm border border-slate-200 p-6 flex flex-col h-full">
+                    <h3 class="text-xl font-bold text-slate-800 mb-3 flex items-center">
+                        <span class="w-8 h-8 rounded bg-pink-100 text-pink-700 flex items-center justify-center mr-3 text-sm">2</span>
+                        Pre-emptive
+                    </h3>
+                    <p class="text-slate-600 flex-grow leading-relaxed">
+                        If a newly arrived process has a higher priority than the currently running process, the CPU is preempted (taken away) from the current process and given to the new one. The preempted process is put back into the ready queue.
+                    </p>
+                </div>
+
+                <div class="bg-white rounded-2xl shadow-sm border border-slate-200 p-6 flex flex-col h-full">
+                    <h3 class="text-xl font-bold text-slate-800 mb-3 flex items-center">
+                        <span class="w-8 h-8 rounded bg-red-100 text-red-700 flex items-center justify-center mr-3 text-sm">!</span>
+                        Starvation & Aging
+                    </h3>
+                    <p class="text-slate-600 flex-grow leading-relaxed">
+                        <strong>Starvation:</strong> Low-priority processes may never execute if high-priority processes keep arriving.<br>
+                        <strong>Aging (Solution):</strong> Gradually increasing the priority of processes that wait in the system for a long time.
+                    </p>
+                </div>
+            </div>
+        </section>
+
+        <section id="simulator" class="scroll-mt-24 bg-white rounded-2xl shadow-lg border border-slate-200 overflow-hidden">
+            <div class="bg-slate-50 border-b border-slate-200 px-6 py-4 flex flex-col md:flex-row justify-between items-center gap-4">
+                <h2 class="text-2xl font-bold text-slate-800">Virtual Simulator</h2>
+                
+                <div class="flex items-center space-x-3 bg-white p-1 rounded-lg border border-slate-300 shadow-sm">
+                    <button id="mode-non-preemptive" class="px-4 py-2 text-sm font-medium rounded-md transition-colors bg-indigo-600 text-white shadow-sm" onclick="setMode('non-preemptive')">Non Pre-emptive</button>
+                    <button id="mode-preemptive" class="px-4 py-2 text-sm font-medium rounded-md transition-colors text-slate-600 hover:bg-slate-100" onclick="setMode('preemptive')">Pre-emptive</button>
+                </div>
+            </div>
+
+            <div class="p-6 md:p-8">
+                <div class="overflow-x-auto">
+                    <table class="w-full text-left border-collapse">
+                        <thead>
+                            <tr class="bg-slate-100 text-slate-600 uppercase text-xs font-bold tracking-wider">
+                                <th class="p-3 rounded-tl-lg">Process ID</th>
+                                <th class="p-3">Arrival Time (AT)</th>
+                                <th class="p-3">Burst Time (BT)</th>
+                                <th class="p-3">Priority (Lower = Higher)</th>
+                                <th class="p-3 rounded-tr-lg text-center">Action</th>
+                            </tr>
+                        </thead>
+                        <tbody id="process-tbody" class="divide-y divide-slate-100 text-sm">
+                            <!-- Rows injected by JS -->
+                        </tbody>
+                    </table>
+                </div>
+
+                <div class="mt-6 flex flex-wrap gap-4 items-center justify-between">
+                    <button onclick="addProcess()" class="flex items-center px-4 py-2 bg-slate-100 text-slate-700 hover:bg-slate-200 font-medium rounded-lg transition-colors border border-slate-300">
+                        <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path></svg>
+                        Add Process
+                    </button>
+
+                    <div class="flex gap-3">
+                        <button onclick="resetSimulator()" class="px-6 py-2 text-red-600 hover:bg-red-50 font-medium rounded-lg transition-colors border border-red-200">
+                            Reset
+                        </button>
+                        <button onclick="runSimulation()" class="flex items-center px-6 py-2 bg-emerald-500 hover:bg-emerald-600 text-white font-bold rounded-lg transition-colors shadow-md shadow-emerald-200">
+                            <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                            Run Simulation
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section id="results-section" class="hidden space-y-8 fade-in pb-16">
+            
+            <!-- Gantt Chart Container -->
+            <div class="bg-white rounded-2xl shadow-sm border border-slate-200 p-6 md:p-8">
+                <h3 class="text-xl font-bold text-slate-800 mb-6 flex items-center">
+                    <svg class="w-6 h-6 mr-2 text-indigo-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"></path></svg>
+                    Gantt Chart
+                </h3>
+                
+                <div class="relative w-full mt-8 mb-4">
+                    <div id="gantt-chart" class="flex h-16 w-full rounded-lg overflow-hidden border-2 border-slate-800 shadow-inner">
+                        <!-- Chart blocks injected by JS -->
+                    </div>
+                    <div id="gantt-labels" class="flex w-full text-xs font-semibold text-slate-600 mt-2 relative h-6">
+                        <!-- Labels injected by JS -->
+                    </div>
+                </div>
+            </div>
+
+            <!-- Result Table -->
+            <div class="bg-white rounded-2xl shadow-sm border border-slate-200 p-6 md:p-8">
+                <h3 class="text-xl font-bold text-slate-800 mb-6">Execution Results</h3>
+                <div class="overflow-x-auto">
+                    <table class="w-full text-left border-collapse">
+                        <thead>
+                            <tr class="bg-indigo-50 text-indigo-800 text-xs font-bold uppercase tracking-wider">
+                                <th class="p-3 border-b-2 border-indigo-200">Process</th>
+                                <th class="p-3 border-b-2 border-indigo-200">AT</th>
+                                <th class="p-3 border-b-2 border-indigo-200">BT</th>
+                                <th class="p-3 border-b-2 border-indigo-200">Priority</th>
+                                <th class="p-3 border-b-2 border-indigo-200 bg-indigo-100" title="Completion Time">CT</th>
+                                <th class="p-3 border-b-2 border-indigo-200 bg-indigo-100" title="Turn Around Time (CT - AT)">TAT</th>
+                                <th class="p-3 border-b-2 border-indigo-200 bg-indigo-100" title="Waiting Time (TAT - BT)">WT</th>
+                            </tr>
+                        </thead>
+                        <tbody id="results-tbody" class="divide-y divide-slate-100 text-sm">
+                            <!-- Result rows injected by JS -->
+                        </tbody>
+                        <tfoot class="bg-slate-50 font-bold text-slate-700">
+                            <tr>
+                                <td colspan="5" class="p-4 text-right border-t-2 border-slate-200">Averages:</td>
+                                <td id="avg-tat" class="p-4 border-t-2 border-slate-200 text-indigo-700">0.00</td>
+                                <td id="avg-wt" class="p-4 border-t-2 border-slate-200 text-indigo-700">0.00</td>
+                            </tr>
+                        </tfoot>
+                    </table>
+                </div>
+                
+                <div class="mt-6 flex flex-wrap gap-4 text-sm text-slate-500 bg-slate-50 p-4 rounded-lg">
+                    <span class="font-semibold text-slate-700">Formulas:</span>
+                    <span><strong class="text-indigo-600">TAT</strong> = CT - AT</span>
+                    <span><strong class="text-indigo-600">WT</strong> = TAT - BT</span>
+                </div>
+            </div>
+
+        </section>
+    </main>
+
+    <script>
+        // State
+        let currentMode = 'non-preemptive'; // 'non-preemptive' or 'preemptive'
+        let processCounter = 1;
+        let processes = [
+            { id: 1, name: 'P1', at: 0, bt: 5, priority: 2 },
+            { id: 2, name: 'P2', at: 1, bt: 4, priority: 1 },
+            { id: 3, name: 'P3', at: 2, bt: 2, priority: 3 },
+            { id: 4, name: 'P4', at: 4, bt: 1, priority: 4 }
+        ];
+
+        // Colors for Gantt Chart (Tailwind Colors)
+        const colors = [
+            'bg-blue-400', 'bg-red-400', 'bg-emerald-400', 'bg-amber-400', 
+            'bg-purple-400', 'bg-pink-400', 'bg-cyan-400', 'bg-orange-400', 'bg-indigo-400'
+        ];
+
+        // Initialize
+        document.addEventListener('DOMContentLoaded', () => {
+            processCounter = processes.length + 1;
+            renderInputTable();
+        });
+
+        // Set Simulation Mode
+        function setMode(mode) {
+            currentMode = mode;
+            const nonPreBtn = document.getElementById('mode-non-preemptive');
+            const preBtn = document.getElementById('mode-preemptive');
+
+            if (mode === 'non-preemptive') {
+                nonPreBtn.className = "px-4 py-2 text-sm font-medium rounded-md transition-colors bg-indigo-600 text-white shadow-sm";
+                preBtn.className = "px-4 py-2 text-sm font-medium rounded-md transition-colors text-slate-600 hover:bg-slate-100";
+            } else {
+                preBtn.className = "px-4 py-2 text-sm font-medium rounded-md transition-colors bg-indigo-600 text-white shadow-sm";
+                nonPreBtn.className = "px-4 py-2 text-sm font-medium rounded-md transition-colors text-slate-600 hover:bg-slate-100";
+            }
+            
+            // Hide results on mode change
+            document.getElementById('results-section').classList.add('hidden');
+        }
+
+        // Render Input Table
+        function renderInputTable() {
+            const tbody = document.getElementById('process-tbody');
+            tbody.innerHTML = '';
+            
+            processes.forEach((p, index) => {
+                const tr = document.createElement('tr');
+                tr.className = 'hover:bg-slate-50 transition-colors';
+                tr.innerHTML = `
+                    <td class="p-3 font-semibold text-slate-700 border-l-4 ${colors[index % colors.length].replace('bg-', 'border-')}">${p.name}</td>
+                    <td class="p-3"><input type="number" min="0" class="w-full max-w-[100px] border border-slate-300 rounded px-2 py-1 focus:outline-none focus:ring-2 focus:ring-indigo-500" value="${p.at}" onchange="updateProcess(${p.id}, 'at', this.value)"></td>
+                    <td class="p-3"><input type="number" min="1" class="w-full max-w-[100px] border border-slate-300 rounded px-2 py-1 focus:outline-none focus:ring-2 focus:ring-indigo-500" value="${p.bt}" onchange="updateProcess(${p.id}, 'bt', this.value)"></td>
+                    <td class="p-3"><input type="number" min="0" class="w-full max-w-[100px] border border-slate-300 rounded px-2 py-1 focus:outline-none focus:ring-2 focus:ring-indigo-500" value="${p.priority}" onchange="updateProcess(${p.id}, 'priority', this.value)"></td>
+                    <td class="p-3 text-center">
+                        <button onclick="removeProcess(${p.id})" class="text-slate-400 hover:text-red-500 transition-colors p-1" title="Remove Process">
+                            <svg class="w-5 h-5 mx-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
+                        </button>
+                    </td>
+                `;
+                tbody.appendChild(tr);
+            });
+        }
+
+        function updateProcess(id, field, value) {
+            const numVal = parseInt(value);
+            const proc = processes.find(p => p.id === id);
+            if(proc && !isNaN(numVal)) {
+                // Ensure non-negative
+                proc[field] = numVal >= 0 ? numVal : 0;
+            }
+            // Hide results when data changes
+            document.getElementById('results-section').classList.add('hidden');
+        }
+
+        function addProcess() {
+            processes.push({
+                id: processCounter,
+                name: `P${processCounter}`,
+                at: 0,
+                bt: 1,
+                priority: 1
+            });
+            processCounter++;
+            renderInputTable();
+            document.getElementById('results-section').classList.add('hidden');
+        }
+
+        function removeProcess(id) {
+            if(processes.length <= 1) {
+                alert("You must have at least one process.");
+                return;
+            }
+            processes = processes.filter(p => p.id !== id);
+            renderInputTable();
+            document.getElementById('results-section').classList.add('hidden');
+        }
+
+        function resetSimulator() {
+            processCounter = 1;
+            processes = [
+                { id: 1, name: 'P1', at: 0, bt: 5, priority: 2 },
+                { id: 2, name: 'P2', at: 1, bt: 4, priority: 1 },
+                { id: 3, name: 'P3', at: 2, bt: 2, priority: 3 },
+                { id: 4, name: 'P4', at: 4, bt: 1, priority: 4 }
+            ];
+            processCounter = 5;
+            renderInputTable();
+            document.getElementById('results-section').classList.add('hidden');
+        }
+
+        function runSimulation() {
+            if (processes.length === 0) return;
+
+            // Ensure no invalid burst times (0 or negative)
+            let valid = true;
+            processes.forEach(p => {
+                if (p.bt <= 0) {
+                    alert(`Process ${p.name} must have a Burst Time greater than 0.`);
+                    valid = false;
+                }
+            });
+            if(!valid) return;
+
+            let results;
+            if (currentMode === 'non-preemptive') {
+                results = simulateNonPreemptive(processes);
+            } else {
+                results = simulatePreemptive(processes);
+            }
+
+            renderResultsTable(results.calculatedProcesses);
+            renderGanttChart(results.ganttChart);
+            
+            const resultsSection = document.getElementById('results-section');
+            resultsSection.classList.remove('hidden');
+            
+            // Scroll to results slightly
+            setTimeout(() => {
+                resultsSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
+            }, 100);
+        }
+
+        function simulateNonPreemptive(inputProcesses) {
+            let n = inputProcesses.length;
+            let pList = inputProcesses.map(p => ({...p, isCompleted: false}));
+            let currentTime = 0;
+            let completed = 0;
+            let gantt = [];
+
+            while(completed < n) {
+                // Find arrived and not completed processes
+                let available = pList.filter(p => p.at <= currentTime && !p.isCompleted);
+
+                if (available.length === 0) {
+                    // CPU is IDLE, jump to next arrival
+                    let nextArrivals = pList.filter(p => !p.isCompleted).map(p => p.at);
+                    let nextArrival = Math.min(...nextArrivals);
+                    gantt.push({name: 'IDLE', start: currentTime, end: nextArrival, isIdle: true});
+                    currentTime = nextArrival;
+                    continue;
+                }
+
+                // Sort available by Priority (Ascending -> Lower number = Higher priority)
+                // If priority is same, sort by Arrival Time
+                available.sort((a, b) => {
+                    if (a.priority === b.priority) {
+                        return a.at - b.at; // FCFS for tie
+                    }
+                    return a.priority - b.priority;
+                });
+
+                let currentProc = available[0];
+                
+                // Add to Gantt Chart
+                gantt.push({
+                    name: currentProc.name, 
+                    id: currentProc.id, 
+                    start: currentTime, 
+                    end: currentTime + currentProc.bt
+                });
+                
+                currentTime += currentProc.bt;
+
+                // Mark completion and calculate metrics
+                let index = pList.findIndex(p => p.id === currentProc.id);
+                pList[index].isCompleted = true;
+                pList[index].ct = currentTime;
+                pList[index].tat = pList[index].ct - pList[index].at;
+                pList[index].wt = pList[index].tat - pList[index].bt;
+                completed++;
+            }
+
+            // Sort final results by Process Name for display
+            pList.sort((a, b) => {
+               if(a.name < b.name) return -1;
+               if(a.name > b.name) return 1;
+               return 0;
+            });
+
+            return { calculatedProcesses: pList, ganttChart: gantt };
+        }
+
+        function simulatePreemptive(inputProcesses) {
+            let n = inputProcesses.length;
+            let pList = inputProcesses.map(p => ({...p, rt: p.bt, isCompleted: false})); // rt = remaining time
+            let currentTime = 0;
+            let completed = 0;
+            let ganttRaw = []; // Logs every time unit
+
+            let prevProcId = null;
+            let blockStart = 0;
+            let gantt = [];
+
+            while(completed < n) {
+                let available = pList.filter(p => p.at <= currentTime && !p.isCompleted);
+
+                if (available.length === 0) {
+                    if (prevProcId !== 'IDLE') {
+                        if (prevProcId !== null) {
+                            gantt.push({name: getProcName(prevProcId, pList), id: prevProcId, start: blockStart, end: currentTime, isIdle: prevProcId === 'IDLE'});
+                        }
+                        prevProcId = 'IDLE';
+                        blockStart = currentTime;
+                    }
+                    currentTime++;
+                    continue;
+                }
+
+                available.sort((a, b) => {
+                    if (a.priority === b.priority) {
+                        return a.at - b.at;
+                    }
+                    return a.priority - b.priority;
+                });
+
+                let currentProc = available[0];
+
+                // If process changes, record the previous block
+                if (prevProcId !== currentProc.id) {
+                    if (prevProcId !== null) {
+                        gantt.push({
+                            name: getProcName(prevProcId, pList), 
+                            id: prevProcId, 
+                            start: blockStart, 
+                            end: currentTime,
+                            isIdle: prevProcId === 'IDLE'
+                        });
+                    }
+                    prevProcId = currentProc.id;
+                    blockStart = currentTime;
+                }
+
+                // Execute 1 unit of time
+                let pIndex = pList.findIndex(p => p.id === currentProc.id);
+                pList[pIndex].rt--;
+                currentTime++;
+
+                // Check completion
+                if (pList[pIndex].rt === 0) {
+                    pList[pIndex].isCompleted = true;
+                    pList[pIndex].ct = currentTime;
+                    pList[pIndex].tat = pList[pIndex].ct - pList[pIndex].at;
+                    pList[pIndex].wt = pList[pIndex].tat - pList[pIndex].bt;
+                    completed++;
+                }
+            }
+
+            // Record final block
+            if (prevProcId !== null) {
+                gantt.push({
+                    name: getProcName(prevProcId, pList), 
+                    id: prevProcId, 
+                    start: blockStart, 
+                    end: currentTime,
+                    isIdle: prevProcId === 'IDLE'
+                });
+            }
+
+            pList.sort((a, b) => {
+               if(a.name < b.name) return -1;
+               if(a.name > b.name) return 1;
+               return 0;
+            });
+
+            return { calculatedProcesses: pList, ganttChart: gantt };
+        }
+
+        function getProcName(id, pList) {
+            if (id === 'IDLE') return 'IDLE';
+            const proc = pList.find(p => p.id === id);
+            return proc ? proc.name : 'Unknown';
+        }
+
+        function renderResultsTable(calcData) {
+            const tbody = document.getElementById('results-tbody');
+            tbody.innerHTML = '';
+            
+            let totalTat = 0;
+            let totalWt = 0;
+
+            calcData.forEach(p => {
+                totalTat += p.tat;
+                totalWt += p.wt;
+                
+                const tr = document.createElement('tr');
+                tr.className = 'hover:bg-slate-50 transition-colors';
+                
+                // Find original index for consistent coloring
+                const originalIndex = processes.findIndex(op => op.id === p.id);
+                const colorClass = originalIndex !== -1 ? colors[originalIndex % colors.length].replace('bg-', 'text-') : 'text-slate-800';
+
+                tr.innerHTML = `
+                    <td class="p-3 font-bold ${colorClass}">${p.name}</td>
+                    <td class="p-3">${p.at}</td>
+                    <td class="p-3">${p.bt}</td>
+                    <td class="p-3 font-medium text-slate-500">${p.priority}</td>
+                    <td class="p-3 bg-indigo-50/50 font-semibold text-slate-800">${p.ct}</td>
+                    <td class="p-3 bg-indigo-50/50 font-semibold text-indigo-700">${p.tat}</td>
+                    <td class="p-3 bg-indigo-50/50 font-semibold text-indigo-700">${p.wt}</td>
+                `;
+                tbody.appendChild(tr);
+            });
+
+            const avgTat = (totalTat / calcData.length).toFixed(2);
+            const avgWt = (totalWt / calcData.length).toFixed(2);
+            
+            document.getElementById('avg-tat').innerText = avgTat;
+            document.getElementById('avg-wt').innerText = avgWt;
+        }
+
+        function renderGanttChart(ganttData) {
+            const chartContainer = document.getElementById('gantt-chart');
+            const labelsContainer = document.getElementById('gantt-labels');
+            
+            chartContainer.innerHTML = '';
+            labelsContainer.innerHTML = '';
+
+            if (ganttData.length === 0) return;
+
+            const totalTime = ganttData[ganttData.length - 1].end - ganttData[0].start;
+            let previousEnd = ganttData[0].start;
+
+            // Add starting 0 label if it doesn't start at 0
+            if (previousEnd > 0) {
+                 const startLabel = document.createElement('div');
+                 startLabel.className = 'absolute bottom-0 -ml-1 text-slate-500 font-medium text-xs';
+                 startLabel.style.left = '0%';
+                 startLabel.innerText = '0';
+                 labelsContainer.appendChild(startLabel);
+            }
+
+            ganttData.forEach((block, index) => {
+                const duration = block.end - block.start;
+                const widthPercent = (duration / totalTime) * 100;
+
+                // Create Block
+                const div = document.createElement('div');
+                
+                if (block.isIdle) {
+                    div.className = `gantt-block h-full flex items-center justify-center font-semibold text-slate-500 border-r border-slate-300 pattern-diagonal-lines-sm bg-slate-200 text-xs`;
+                } else {
+                    const originalIndex = processes.findIndex(p => p.id === block.id);
+                    const colorClass = originalIndex !== -1 ? colors[originalIndex % colors.length] : 'bg-gray-400';
+                    div.className = `gantt-block h-full flex items-center justify-center font-bold text-white border-r border-white/30 ${colorClass} text-sm cursor-default`;
+                }
+                
+                div.style.width = `${widthPercent}%`;
+                div.innerText = block.name;
+                div.title = `${block.name} | Start: ${block.start} | End: ${block.end} | Duration: ${duration}`;
+                chartContainer.appendChild(div);
+
+                // Create Label (End time of this block)
+                const endPos = ((block.end - ganttData[0].start) / totalTime) * 100;
+                const label = document.createElement('div');
+                label.className = 'absolute top-0 text-slate-800 font-bold';
+                // Adjust margin based on position to keep it aligned
+                if(endPos >= 99) {
+                    label.style.right = '0';
+                } else {
+                    label.style.left = `calc(${endPos}% - 0.5rem)`;
+                }
+                label.innerText = block.end;
+                labelsContainer.appendChild(label);
+                
+                // If it's the first block, also add its start time
+                if (index === 0) {
+                     const startLabel = document.createElement('div');
+                     startLabel.className = 'absolute top-0 text-slate-800 font-bold';
+                     startLabel.style.left = '0';
+                     startLabel.innerText = block.start;
+                     labelsContainer.appendChild(startLabel);
+                }
+            });
+        }
+    </script>
+</body>
+</html>
