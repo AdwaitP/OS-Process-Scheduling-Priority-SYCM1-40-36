@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html lang="en" class="scroll-smooth">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Priority Scheduling Theory & Quiz</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="style.css" rel="stylesheet">
+</head>
+<body class="antialiased min-h-screen flex flex-col">
+
+    <!-- Navigation -->
+    <nav class="bg-indigo-600 text-white shadow-lg sticky top-0 z-50">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between h-16">
+                <div class="flex items-center space-x-3">
+                    <svg class="w-8 h-8 text-indigo-200" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19.428 15.428a2 2 0 00-1.022-.547l-2.387-.477a6 6 0 00-3.86.517l-.318.158a6 6 0 01-3.86.517L6.05 15.21a2 2 0 00-1.806.547M8 4h8l-1 1v5.172a2 2 0 00.586 1.414l5 5c1.26 1.26.367 3.414-1.415 3.414H4.828c-1.782 0-2.674-2.154-1.414-3.414l5-5A2 2 0 009 10.172V5L8 4z"></path></svg>
+                    <span class="font-bold text-xl tracking-tight">OS Algo<span class="text-indigo-200">Learn</span></span>
+                </div>
+                <div class="flex items-center space-x-6">
+                    <a href="theory.html" class="hover:text-indigo-200 transition-colors font-medium border-b-2 border-white pb-1">Theory</a>
+                    <a href="simulator.html" class="hover:text-indigo-200 transition-colors font-medium bg-indigo-500 px-4 py-2 rounded-md">Simulator</a>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <main class="flex-grow w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-12">
+        
+        <!-- Header Section -->
+        <div class="text-center space-y-4 pt-8">
+            <h1 class="text-4xl md:text-5xl font-extrabold text-slate-900 tracking-tight">Priority Process Scheduling</h1>
+            <p class="text-lg text-slate-600 max-w-3xl mx-auto">Master one of the core Operating System CPU scheduling algorithms. Learn the theory, take the quiz, and earn your certificate.</p>
+        </div>
+
+        <!-- Extensive Theory Section -->
+        <section id="theory" class="bg-white rounded-2xl shadow-sm border border-slate-200 p-8 space-y-8">
+            <div>
+                <h2 class="text-3xl font-bold text-indigo-700 mb-4">What is Priority Scheduling?</h2>
+                <p class="text-slate-700 leading-relaxed mb-4">
+                    Priority scheduling is an algorithm where the CPU is allocated to the process with the highest priority. It is a fundamental concept in operating systems designed to ensure that important tasks are executed before less important ones. Priorities can be defined internally (e.g., memory requirements, time limits) or externally (e.g., user importance, political factors).
+                </p>
+                <div class="bg-amber-50 border-l-4 border-amber-400 p-4 mb-4">
+                    <p class="text-sm text-amber-700">
+                        <strong>Convention:</strong> In our simulator and many textbook examples, a <em>lower number</em> indicates a <em>higher priority</em>. For instance, Priority 1 > Priority 5. Equal-priority processes are scheduled in First-Come, First-Served (FCFS) order.
+                    </p>
+                </div>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+                <div class="bg-indigo-50 rounded-xl p-6 border border-indigo-100">
+                    <h3 class="text-xl font-bold text-slate-800 mb-3">1. Non Pre-emptive</h3>
+                    <p class="text-slate-700 leading-relaxed">
+                        Once the CPU has been allocated to a process, the process keeps the CPU until it voluntarily releases it (by terminating or waiting for I/O). Even if a newly arrived process has a strictly higher priority, it must wait in the ready queue until the current process finishes execution.
+                    </p>
+                </div>
+                <div class="bg-pink-50 rounded-xl p-6 border border-pink-100">
+                    <h3 class="text-xl font-bold text-slate-800 mb-3">2. Pre-emptive</h3>
+                    <p class="text-slate-700 leading-relaxed">
+                        If a newly arrived process has a higher priority than the currently running process, the CPU is forcibly preempted (taken away) from the current process. The current process is placed back in the ready queue, and the CPU is immediately given to the new, higher-priority process.
+                    </p>
+                </div>
+            </div>
+
+            <div>
+                <h3 class="text-2xl font-bold text-indigo-700 mb-4">The Major Problem: Starvation</h3>
+                <p class="text-slate-700 leading-relaxed mb-4">
+                    A major flaw in priority scheduling algorithms is <strong>indefinite blocking</strong>, or <strong>starvation</strong>. A process that is ready to run but lacking the CPU can be considered blocked. In a heavily loaded computer system, a steady stream of higher-priority processes can prevent a low-priority process from ever getting the CPU.
+                </p>
+                <h4 class="text-xl font-semibold text-slate-800 mb-2">The Solution: Aging</h4>
+                <p class="text-slate-700 leading-relaxed mb-4">
+                    <strong>Aging</strong> is a technique used to overcome starvation. It involves gradually increasing the priority of processes that wait in the system for a long time. For example, if priorities range from 127 (low) to 0 (high), we could decrease the priority number of a waiting process by 1 every 15 minutes. Eventually, even a process with an initial priority of 127 will reach priority 0 and be executed.
+                </p>
+            </div>
+            
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-8 pt-4">
+                <div>
+                    <h3 class="text-xl font-bold text-emerald-700 mb-2">Advantages</h3>
+                    <ul class="list-disc pl-5 text-slate-700 space-y-2">
+                        <li>Simplicity in design and ease of understanding.</li>
+                        <li>Ensures critical, high-priority processes run immediately without waiting for long, unimportant tasks.</li>
+                        <li>Highly flexible; priority formulas can be adjusted based on dynamic system needs (time limits, memory).</li>
+                    </ul>
+                </div>
+                <div>
+                    <h3 class="text-xl font-bold text-red-700 mb-2">Disadvantages</h3>
+                    <ul class="list-disc pl-5 text-slate-700 space-y-2">
+                        <li>Vulnerable to Starvation if aging is not implemented.</li>
+                        <li>Susceptible to <strong>Priority Inversion</strong> (where a low-priority process blocks a high-priority process by holding a shared resource).</li>
+                        <li>Overhead: Pre-emptive mode can cause frequent context switches if high-priority tasks arrive constantly.</li>
+                    </ul>
+                </div>
+            </div>
+        </section>
+
+        <!-- Quiz Section -->
+        <section id="quiz" class="bg-white rounded-2xl shadow-sm border border-slate-200 p-8">
+            <h2 class="text-3xl font-bold text-indigo-700 mb-2">Test Your Knowledge</h2>
+            <p class="text-slate-500 mb-6">Answer these 10 questions (4 easy, 6 hard). You need 4 correct answers to pass and generate your certificate.</p>
+            
+            <div id="quiz-form" class="space-y-6">
+                <div id="quiz-questions">
+                    <!-- Questions injected by JS -->
+                </div>
+                
+                <button onclick="submitQuiz()" class="bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-3 px-8 rounded-lg shadow-md transition-colors w-full md:w-auto">
+                    Submit Test
+                </button>
+            </div>
+
+            <!-- Quiz Result Output -->
+            <div id="quiz-result" class="mt-6 p-4 rounded bg-slate-100 hidden border">
+                <!-- Result string injected by JS -->
+            </div>
+        </section>
+
+        <!-- Certificate Generation Section -->
+        <section id="certificate-section" class="hidden bg-white rounded-2xl shadow-sm border border-slate-200 p-8 fade-in text-center mb-16">
+            <h2 class="text-3xl font-bold text-indigo-700 mb-4">Claim Your Certificate</h2>
+            
+            <div id="name-input-form" class="max-w-md mx-auto space-y-4">
+                <input type="text" id="learner-name" placeholder="Enter your full name" class="w-full border-2 border-slate-300 rounded px-4 py-3 focus:outline-none focus:border-indigo-500 text-lg">
+                <button onclick="generateCertificate()" class="bg-emerald-500 hover:bg-emerald-600 text-white font-bold py-3 px-8 rounded-lg shadow-md transition-colors w-full">
+                    Generate Certificate
+                </button>
+            </div>
+
+            <div id="certificate-display" class="hidden mt-8 max-w-4xl mx-auto certificate-container">
+                <h1 class="cert-title text-4xl md:text-5xl font-bold mb-4">Certificate of Completion</h1>
+                <p class="text-slate-600 text-lg mb-6">This certifies that</p>
+                <h2 id="cert-name-display" class="cert-name">Learner Name</h2>
+                <p class="text-slate-600 text-lg mb-8 max-w-2xl mx-auto">
+                    Has successfully passed the assessment and demonstrated a clear understanding of 
+                    <br><strong>Priority Process Scheduling (OS Algorithms)</strong>.
+                </p>
+                
+                <div class="flex justify-between items-center mt-12 px-8">
+                    <div class="text-left border-t-2 border-slate-300 pt-2 w-48">
+                        <p class="font-bold text-slate-800">Date</p>
+                        <p id="cert-date" class="text-slate-600 text-sm">October 10, 2023</p>
+                    </div>
+                    
+                    <div class="w-24 h-24 bg-indigo-50 rounded-full flex items-center justify-center border-4 border-indigo-200">
+                        <svg class="w-10 h-10 text-indigo-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4M7.835 4.697a3.42 3.42 0 001.946-.806 3.42 3.42 0 014.438 0 3.42 3.42 0 001.946.806 3.42 3.42 0 013.138 3.138 3.42 3.42 0 00.806 1.946 3.42 3.42 0 010 4.438 3.42 3.42 0 00-.806 1.946 3.42 3.42 0 01-3.138 3.138 3.42 3.42 0 00-1.946.806 3.42 3.42 0 01-4.438 0 3.42 3.42 0 00-1.946-.806 3.42 3.42 0 01-3.138-3.138 3.42 3.42 0 00-.806-1.946 3.42 3.42 0 010-4.438 3.42 3.42 0 00.806-1.946 3.42 3.42 0 013.138-3.138z"></path></svg>
+                    </div>
+
+                    <div class="text-right border-t-2 border-slate-300 pt-2 w-48">
+                        <p class="font-bold text-slate-800">OS AlgoLearn</p>
+                        <p class="text-slate-600 text-sm">Course Instructor</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+    </main>
+
+    <script src="script.js"></script>
+</body>
+</html>
