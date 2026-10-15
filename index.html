@@ -431,6 +431,28 @@
             let currentTime = 0;
             let completed = 0;
             let ganttRaw = []; // Logs every time unit
+            // Conceptual modification to the simulatePreemptive function from Stage 2
+            let currentProc = available[0];
+            let timeSinceLastPreemptionCheck = 0;
+            
+            // ... inside the execution loop ...
+            if (prevProcId !== currentProc.id) {
+                // Only allow context switch if the previous process is at a preemption boundary 
+                // OR if it has finished its execution.
+                let prevProc = pList.find(p => p.id === prevProcId);
+                if (prevProc && prevProc.rt > 0 && timeSinceLastPreemptionCheck < prevProc.preemption_interval) {
+                    // Defer the preemption: Force the currentProc back to the previous one
+                    currentProc = prevProc; 
+                } else {
+                    // Safe to preempt
+                    timeSinceLastPreemptionCheck = 0; 
+                }
+            }
+            
+            // Execute 1 unit of time
+            pList[pIndex].rt--;
+            timeSinceLastPreemptionCheck++;
+            currentTime++;
 
             let prevProcId = null;
             let blockStart = 0;
