@@ -1,0 +1,61 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@1,700&display=swap'); /* For Certificate */
+
+body {
+    font-family: 'Inter', sans-serif;
+    background-color: #f8fafc;
+    color: #0f172a;
+}
+
+.gantt-block {
+    transition: all 0.3s ease;
+}
+
+.gantt-block:hover {
+    transform: scaleY(1.1);
+    z-index: 10;
+    box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+}
+
+/* Custom scrollbar */
+::-webkit-scrollbar { width: 8px; height: 8px; }
+::-webkit-scrollbar-track { background: #f1f1f1; }
+::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 4px; }
+::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
+
+.fade-in { animation: fadeIn 0.5s ease-in; }
+
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(10px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+/* Certificate Styles */
+.certificate-container {
+    background: #fff;
+    border: 10px solid #4f46e5;
+    padding: 3rem;
+    text-align: center;
+    position: relative;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+}
+.certificate-container::before {
+    content: '';
+    position: absolute;
+    top: 5px; left: 5px; right: 5px; bottom: 5px;
+    border: 2px dashed #4f46e5;
+    pointer-events: none;
+}
+.cert-title {
+    font-family: 'Playfair Display', serif;
+    color: #3730a3;
+}
+.cert-name {
+    font-family: 'Playfair Display', serif;
+    font-size: 3rem;
+    border-bottom: 2px solid #cbd5e1;
+    display: inline-block;
+    padding: 0 2rem;
+    margin: 1.5rem 0;
+    color: #1e293b;
+}
