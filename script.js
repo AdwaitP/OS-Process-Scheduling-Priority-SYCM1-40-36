@@ -1,4 +1,320 @@
 // ==========================================
+// ROUTER & INITIALIZATION
+// ==========================================
+document.addEventListener('DOMContentLoaded', () => {
+    // Check if we are on the Simulator page
+    if (document.getElementById('process-tbody')) {
+        initSimulator();
+    }
+    // Check if we are on the Theory page
+    if (document.getElementById('quiz-form')) {
+        initQuiz();
+    }
+});
+
+// ==========================================
+// SIMULATOR LOGIC (simulator.html)
+// ==========================================
+let currentMode = 'non-preemptive';
+let processCounter = 1;
+let processes = [];
+
+// Defined fully for Tailwind CDN to pick them up correctly
+const processColors = [
+    { bg: 'bg-blue-400', border: 'border-blue-400', text: 'text-blue-600' },
+    { bg: 'bg-red-400', border: 'border-red-400', text: 'text-red-600' },
+    { bg: 'bg-emerald-400', border: 'border-emerald-400', text: 'text-emerald-600' },
+    { bg: 'bg-amber-400', border: 'border-amber-400', text: 'text-amber-600' },
+    { bg: 'bg-purple-400', border: 'border-purple-400', text: 'text-purple-600' },
+    { bg: 'bg-pink-400', border: 'border-pink-400', text: 'text-pink-600' },
+    { bg: 'bg-cyan-400', border: 'border-cyan-400', text: 'text-cyan-600' },
+    { bg: 'bg-orange-400', border: 'border-orange-400', text: 'text-orange-600' },
+    { bg: 'bg-indigo-400', border: 'border-indigo-400', text: 'text-indigo-600' }
+];
+
+function initSimulator() {
+    resetSimulator();
+}
+
+function setMode(mode) {
+    currentMode = mode;
+    const nonPreBtn = document.getElementById('mode-non-preemptive');
+    const preBtn = document.getElementById('mode-preemptive');
+
+    if (mode === 'non-preemptive') {
+        nonPreBtn.className = "px-4 py-2 text-sm font-medium rounded-md transition-colors bg-indigo-600 text-white shadow-sm";
+        preBtn.className = "px-4 py-2 text-sm font-medium rounded-md transition-colors text-slate-600 hover:bg-slate-100";
+    } else {
+        preBtn.className = "px-4 py-2 text-sm font-medium rounded-md transition-colors bg-indigo-600 text-white shadow-sm";
+        nonPreBtn.className = "px-4 py-2 text-sm font-medium rounded-md transition-colors text-slate-600 hover:bg-slate-100";
+    }
+    document.getElementById('results-section').classList.add('hidden');
+}
+
+function renderInputTable() {
+    const tbody = document.getElementById('process-tbody');
+    if(!tbody) return;
+    tbody.innerHTML = '';
+    
+    processes.forEach((p, index) => {
+        const pColor = processColors[index % processColors.length];
+        const tr = document.createElement('tr');
+        tr.className = 'hover:bg-slate-50 transition-colors';
+        tr.innerHTML = `
+            <td class="p-3 font-semibold text-slate-700 border-l-4 ${pColor.border}">${p.name}</td>
+            <td class="p-3"><input type="number" min="0" class="w-full max-w-[100px] border border-slate-300 rounded px-2 py-1 focus:outline-none focus:ring-2 focus:ring-indigo-500" value="${p.at}" onchange="updateProcess(${p.id}, 'at', this.value)"></td>
+            <td class="p-3"><input type="number" min="1" class="w-full max-w-[100px] border border-slate-300 rounded px-2 py-1 focus:outline-none focus:ring-2 focus:ring-indigo-500" value="${p.bt}" onchange="updateProcess(${p.id}, 'bt', this.value)"></td>
+            <td class="p-3"><input type="number" min="0" class="w-full max-w-[100px] border border-slate-300 rounded px-2 py-1 focus:outline-none focus:ring-2 focus:ring-indigo-500" value="${p.priority}" onchange="updateProcess(${p.id}, 'priority', this.value)"></td>
+            <td class="p-3 text-center">
+                <button onclick="removeProcess(${p.id})" class="text-slate-400 hover:text-red-500 transition-colors p-1" title="Remove Process">
+                    <svg class="w-5 h-5 mx-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
+                </button>
+            </td>
+        `;
+        tbody.appendChild(tr);
+    });
+}
+
+function updateProcess(id, field, value) {
+    const numVal = parseInt(value);
+    const proc = processes.find(p => p.id === id);
+    if(proc && !isNaN(numVal)) {
+        proc[field] = numVal >= 0 ? numVal : 0;
+    }
+    document.getElementById('results-section').classList.add('hidden');
+}
+
+function addProcess() {
+    processes.push({ id: processCounter, name: `P${processCounter}`, at: 0, bt: 1, priority: 1 });
+    processCounter++;
+    renderInputTable();
+    document.getElementById('results-section').classList.add('hidden');
+}
+
+function removeProcess(id) {
+    if(processes.length <= 1) {
+        alert("You must have at least one process.");
+        return;
+    }
+    processes = processes.filter(p => p.id !== id);
+    renderInputTable();
+    document.getElementById('results-section').classList.add('hidden');
+}
+
+function resetSimulator() {
+    processes = [
+        { id: 1, name: 'P1', at: 0, bt: 5, priority: 2 },
+        { id: 2, name: 'P2', at: 1, bt: 4, priority: 1 },
+        { id: 3, name: 'P3', at: 2, bt: 2, priority: 3 },
+        { id: 4, name: 'P4', at: 4, bt: 1, priority: 4 }
+    ];
+    processCounter = 5;
+    renderInputTable();
+    document.getElementById('results-section').classList.add('hidden');
+}
+
+function runSimulation() {
+    if (processes.length === 0) return;
+
+    let valid = true;
+    processes.forEach(p => {
+        if (p.bt <= 0) {
+            alert(`Process ${p.name} must have a Burst Time greater than 0.`);
+            valid = false;
+        }
+    });
+    if(!valid) return;
+
+    let results = currentMode === 'non-preemptive' ? simulateNonPreemptive(processes) : simulatePreemptive(processes);
+
+    renderResultsTable(results.calculatedProcesses);
+    renderGanttChart(results.ganttChart);
+    
+    const resultsSection = document.getElementById('results-section');
+    resultsSection.classList.remove('hidden');
+    setTimeout(() => { resultsSection.scrollIntoView({ behavior: 'smooth', block: 'start' }); }, 100);
+}
+
+function simulateNonPreemptive(inputProcesses) {
+    let n = inputProcesses.length;
+    let pList = inputProcesses.map(p => ({...p, isCompleted: false}));
+    let currentTime = 0, completed = 0;
+    let gantt = [];
+
+    while(completed < n) {
+        let available = pList.filter(p => p.at <= currentTime && !p.isCompleted);
+
+        if (available.length === 0) {
+            let nextArrivals = pList.filter(p => !p.isCompleted).map(p => p.at);
+            let nextArrival = Math.min(...nextArrivals);
+            gantt.push({name: 'IDLE', start: currentTime, end: nextArrival, isIdle: true});
+            currentTime = nextArrival;
+            continue;
+        }
+
+        available.sort((a, b) => a.priority === b.priority ? a.at - b.at : a.priority - b.priority);
+
+        let currentProc = available[0];
+        gantt.push({ name: currentProc.name, id: currentProc.id, start: currentTime, end: currentTime + currentProc.bt });
+        
+        currentTime += currentProc.bt;
+
+        let index = pList.findIndex(p => p.id === currentProc.id);
+        pList[index].isCompleted = true;
+        pList[index].ct = currentTime;
+        pList[index].tat = pList[index].ct - pList[index].at;
+        pList[index].wt = pList[index].tat - pList[index].bt;
+        completed++;
+    }
+
+    pList.sort((a, b) => a.name.localeCompare(b.name));
+    return { calculatedProcesses: pList, ganttChart: gantt };
+}
+
+function simulatePreemptive(inputProcesses) {
+    let n = inputProcesses.length;
+    let pList = inputProcesses.map(p => ({...p, rt: p.bt, isCompleted: false})); 
+    let currentTime = 0, completed = 0;
+    
+    let prevProcId = null;
+    let blockStart = 0;
+    let gantt = [];
+
+    while(completed < n) {
+        let available = pList.filter(p => p.at <= currentTime && !p.isCompleted);
+
+        if (available.length === 0) {
+            if (prevProcId !== 'IDLE') {
+                if (prevProcId !== null) gantt.push({name: getProcName(prevProcId, pList), id: prevProcId, start: blockStart, end: currentTime, isIdle: prevProcId === 'IDLE'});
+                prevProcId = 'IDLE';
+                blockStart = currentTime;
+            }
+            currentTime++;
+            continue;
+        }
+
+        available.sort((a, b) => a.priority === b.priority ? a.at - b.at : a.priority - b.priority);
+        let currentProc = available[0];
+
+        if (prevProcId !== currentProc.id) {
+            if (prevProcId !== null) {
+                gantt.push({ name: getProcName(prevProcId, pList), id: prevProcId, start: blockStart, end: currentTime, isIdle: prevProcId === 'IDLE' });
+            }
+            prevProcId = currentProc.id;
+            blockStart = currentTime;
+        }
+
+        let pIndex = pList.findIndex(p => p.id === currentProc.id);
+        pList[pIndex].rt--;
+        currentTime++;
+
+        if (pList[pIndex].rt === 0) {
+            pList[pIndex].isCompleted = true;
+            pList[pIndex].ct = currentTime;
+            pList[pIndex].tat = pList[pIndex].ct - pList[pIndex].at;
+            pList[pIndex].wt = pList[pIndex].tat - pList[pIndex].bt;
+            completed++;
+        }
+    }
+
+    if (prevProcId !== null) {
+        gantt.push({ name: getProcName(prevProcId, pList), id: prevProcId, start: blockStart, end: currentTime, isIdle: prevProcId === 'IDLE' });
+    }
+
+    pList.sort((a, b) => a.name.localeCompare(b.name));
+    return { calculatedProcesses: pList, ganttChart: gantt };
+}
+
+function getProcName(id, pList) {
+    if (id === 'IDLE') return 'IDLE';
+    const proc = pList.find(p => p.id === id);
+    return proc ? proc.name : 'Unknown';
+}
+
+function renderResultsTable(calcData) {
+    const tbody = document.getElementById('results-tbody');
+    tbody.innerHTML = '';
+    let totalTat = 0, totalWt = 0;
+
+    calcData.forEach(p => {
+        totalTat += p.tat;
+        totalWt += p.wt;
+        const tr = document.createElement('tr');
+        tr.className = 'hover:bg-slate-50 transition-colors';
+        
+        const originalIndex = processes.findIndex(op => op.id === p.id);
+        const textColorClass = originalIndex !== -1 ? processColors[originalIndex % processColors.length].text : 'text-slate-800';
+
+        tr.innerHTML = `
+            <td class="p-3 font-bold ${textColorClass}">${p.name}</td>
+            <td class="p-3">${p.at}</td>
+            <td class="p-3">${p.bt}</td>
+            <td class="p-3 font-medium text-slate-500">${p.priority}</td>
+            <td class="p-3 bg-indigo-50/50 font-semibold text-slate-800">${p.ct}</td>
+            <td class="p-3 bg-indigo-50/50 font-semibold text-indigo-700">${p.tat}</td>
+            <td class="p-3 bg-indigo-50/50 font-semibold text-indigo-700">${p.wt}</td>
+        `;
+        tbody.appendChild(tr);
+    });
+
+    document.getElementById('avg-tat').innerText = (totalTat / calcData.length).toFixed(2);
+    document.getElementById('avg-wt').innerText = (totalWt / calcData.length).toFixed(2);
+}
+
+function renderGanttChart(ganttData) {
+    const chartContainer = document.getElementById('gantt-chart');
+    const labelsContainer = document.getElementById('gantt-labels');
+    chartContainer.innerHTML = '';
+    labelsContainer.innerHTML = '';
+
+    if (ganttData.length === 0) return;
+
+    const totalTime = ganttData[ganttData.length - 1].end - ganttData[0].start;
+
+    if (ganttData[0].start > 0) {
+        const startLabel = document.createElement('div');
+        startLabel.className = 'absolute bottom-0 -ml-1 text-slate-500 font-medium text-xs';
+        startLabel.style.left = '0%';
+        startLabel.innerText = '0';
+        labelsContainer.appendChild(startLabel);
+    }
+
+    ganttData.forEach((block, index) => {
+        const widthPercent = ((block.end - block.start) / totalTime) * 100;
+        const div = document.createElement('div');
+        
+        if (block.isIdle) {
+            div.className = `gantt-block h-full flex items-center justify-center font-semibold text-slate-500 border-r border-slate-300 bg-slate-200 text-xs`;
+        } else {
+            const originalIndex = processes.findIndex(p => p.id === block.id);
+            const bgColorClass = originalIndex !== -1 ? processColors[originalIndex % processColors.length].bg : 'bg-gray-400';
+            div.className = `gantt-block h-full flex items-center justify-center font-bold text-white border-r border-white/30 ${bgColorClass} text-sm cursor-default`;
+        }
+        
+        div.style.width = `${widthPercent}%`;
+        div.innerText = block.name;
+        chartContainer.appendChild(div);
+
+        const endPos = ((block.end - ganttData[0].start) / totalTime) * 100;
+        const label = document.createElement('div');
+        label.className = 'absolute top-0 text-slate-800 font-bold';
+        if(endPos >= 99) label.style.right = '0';
+        else label.style.left = `calc(${endPos}% - 0.5rem)`;
+        
+        label.innerText = block.end;
+        labelsContainer.appendChild(label);
+        
+        if (index === 0) {
+            const startLabel = document.createElement('div');
+            startLabel.className = 'absolute top-0 text-slate-800 font-bold';
+            startLabel.style.left = '0';
+            startLabel.innerText = block.start;
+            labelsContainer.appendChild(startLabel);
+        }
+    });
+}
+
+// ==========================================
 // QUIZ & CERTIFICATE LOGIC (theory.html)
 // ==========================================
 const quizQuestions = [
@@ -82,7 +398,7 @@ function submitQuiz() {
         document.getElementById('certificate-section').classList.remove('hidden');
     } else {
         resultDiv.className = 'mt-6 p-4 rounded border bg-red-50 border-red-300';
-        resultDiv.innerHTML = `<p class="text-red-700 font-bold text-lg">You scored ${score}/10. You need at least 4/10 to pass. Please review the theory and refresh the page to try again.</p>`;
+        resultDiv.innerHTML = `<p class="text-red-700 font-bold text-lg">You scored ${score}/10. You need at least 4/10 to pass. Please refresh the page to try again.</p>`;
         document.getElementById('certificate-section').classList.add('hidden');
     }
 
